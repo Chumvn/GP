@@ -25,11 +25,11 @@
     </div>
     <div class="topbar__right">
       <div class="search-wrap">
-        <label for="search-input" class="sr-only">Tìm kiếm địa điểm</label>
+        <label for="search-input" class="sr-only">Tìm kiếm</label>
         <input id="search-input" class="search-input focusable" type="search" placeholder="🔍 Tìm địa chỉ..." autocomplete="off">
       </div>
-      <button id="btn-refresh" class="topbar-btn focusable" aria-label="Làm mới" title="Làm mới">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/><path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"/></svg>
+      <button id="btn-add" class="topbar-btn topbar-btn--add focusable" aria-label="Thêm chỗ đậu" title="Thêm chỗ đậu xe">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       </button>
       <button id="btn-theme" class="topbar-btn focusable" aria-label="Đổi giao diện" title="Đổi giao diện">
         <svg class="icon-moon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -38,25 +38,19 @@
     </div>
   </header>
 
-  <!-- REALTIME STATUS -->
+  <!-- REALTIME BAR -->
   <div id="realtime-bar" class="realtime-bar"></div>
-
-  <div id="status-line" class="status-line" role="status" aria-live="polite"></div>
+  <div id="status-line" class="status-line" role="status"></div>
   <nav class="tabs-bar" role="tablist" id="tabs-bar"></nav>
 
   <main id="main-content" class="main-content" role="main">
-    <div id="skeleton" class="skeleton-grid">
-      <div class="skeleton-card"><div class="sk-icon"></div><div style="flex:1;display:flex;flex-direction:column;gap:8px"><div class="sk-line w80"></div><div class="sk-line w60"></div></div></div>
-      <div class="skeleton-card"><div class="sk-icon"></div><div style="flex:1;display:flex;flex-direction:column;gap:8px"><div class="sk-line w80"></div><div class="sk-line w60"></div></div></div>
-      <div class="skeleton-card"><div class="sk-icon"></div><div style="flex:1;display:flex;flex-direction:column;gap:8px"><div class="sk-line w80"></div><div class="sk-line w60"></div></div></div>
-      <div class="skeleton-card"><div class="sk-icon"></div><div style="flex:1;display:flex;flex-direction:column;gap:8px"><div class="sk-line w80"></div><div class="sk-line w60"></div></div></div>
-      <div class="skeleton-card"><div class="sk-icon"></div><div style="flex:1;display:flex;flex-direction:column;gap:8px"><div class="sk-line w80"></div><div class="sk-line w60"></div></div></div>
-      <div class="skeleton-card"><div class="sk-icon"></div><div style="flex:1;display:flex;flex-direction:column;gap:8px"><div class="sk-line w80"></div><div class="sk-line w60"></div></div></div>
+    <!-- EMPTY STATE khi chưa có data -->
+    <div id="empty-state" class="empty-state">
+      <p class="empty-state__icon">🅿️</p>
+      <p class="empty-state__text">Chưa có chỗ đậu xe nào.</p>
+      <p class="empty-state__sub">Bấm nút <strong>＋</strong> để thêm địa điểm mới.</p>
     </div>
     <div id="cards-grid" class="cards-grid" role="list" style="display:none"></div>
-    <div id="empty-state" class="empty-state" style="display:none">
-      <p class="empty-state__text">Không tìm thấy địa điểm nào.</p>
-    </div>
   </main>
 
   <div id="toast" class="toast" role="alert" aria-live="assertive" style="display:none"></div>
