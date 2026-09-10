@@ -45,7 +45,19 @@ function nextBan(bh){
 function pStatus(it){
   var r={ok:true,cls:'st-ok',lbl:'✅ Đậu được'};
   if(it.ban_eo){
-    if(it.ban_eo===dType()){r.ok=false;r.cls='st-ban';r.lbl='🚫 Cấm hôm nay (ngày '+dLabel()+')';return r}
+    if(it.ban_eo==='even'||it.ban_eo==='odd'){
+      if(it.ban_eo===dType()){r.ok=false;r.cls='st-ban';r.lbl='🚫 Cấm hôm nay (ngày '+dLabel()+')';return r}
+    }
+    else if(it.ban_eo==='even_left'){
+      // Left=even, Right=odd
+      if(isEven()){r.cls='st-warn';r.lbl='⚠️ Hôm nay đậu BÊN PHẢI (trái cấm chẵn)'}
+      else{r.cls='st-warn';r.lbl='⚠️ Hôm nay đậu BÊN TRÁI (phải cấm lẻ)'}
+    }
+    else if(it.ban_eo==='odd_left'){
+      // Left=odd, Right=even
+      if(isEven()){r.cls='st-warn';r.lbl='⚠️ Hôm nay đậu BÊN TRÁI (phải cấm chẵn)'}
+      else{r.cls='st-warn';r.lbl='⚠️ Hôm nay đậu BÊN PHẢI (trái cấm lẻ)'}
+    }
   }
   if(it.ban_h&&it.ban_h.length){
     if(isBanned(it.ban_h)){r.ok=false;r.cls='st-ban';r.lbl='🚫 Đang cấm giờ!';return r}
@@ -110,7 +122,10 @@ function mkCard(it){
   // Meta
   var mp=[];
   if(it.hours)mp.push('🕐 '+it.hours);
-  if(it.ban_eo)mp.push('📊 Cấm ngày '+(it.ban_eo==='even'?'CHẴN':'LẺ'));
+  if(it.ban_eo){
+    var eoLabels={even:'Cấm CHẴN',odd:'Cấm LẺ',even_left:'Trái CHẴN / Phải LẺ',odd_left:'Trái LẺ / Phải CHẴN'};
+    mp.push('📊 '+(eoLabels[it.ban_eo]||it.ban_eo));
+  }
   if(it.ban_h&&it.ban_h.length)mp.push('⏰ '+fmtBH(it.ban_h));
   if(mp.length){var mt=document.createElement('div');mt.className='c-meta';mt.textContent=mp.join(' • ');info.appendChild(mt)}
   // Price
@@ -168,7 +183,7 @@ function addForm(){
     '<div class="af"><label>Giờ hoạt động</label><input id="f-h" placeholder="VD: 6:00-22:00 hoặc 24/7"></div>'+
     '<div class="af"><label>Phí gửi xe (để trống = miễn phí)</label><input id="f-p" placeholder="VD: 10.000đ/giờ hoặc 80.000đ/ngày"></div>'+
     '<div class="af"><label>Ghi chú</label><input id="f-no" placeholder="VD: Free 2h đầu khi mua sắm"></div>'+
-    '<div class="af"><label>Cấm chẵn/lẻ</label><select id="f-eo"><option value="">Không cấm</option><option value="even">Cấm ngày CHẴN</option><option value="odd">Cấm ngày LẺ</option></select></div>'+
+    '<div class="af"><label>Cấm chẵn/lẻ</label><select id="f-eo"><option value="">Không cấm</option><option value="even">Cấm ngày CHẴN</option><option value="odd">Cấm ngày LẺ</option><option value="even_left">Trái cấm CHẴN / Phải cấm LẺ</option><option value="odd_left">Trái cấm LẺ / Phải cấm CHẴN</option></select></div>'+
     '<div class="af"><label>Cấm giờ (cách bởi dấu | )</label><input id="f-bh" placeholder="VD: 06:00-09:00 | 16:00-19:00"></div>'+
     '<div class="af"><label>Tọa độ / Plus Code</label><input id="f-ll" placeholder="10.7688, 106.6932 hoặc RMHG+QP HCM"></div>'+
     '<div class="pw-btns"><button class="btn-cancel" id="a-n">Hủy</button><button class="btn-ok" id="a-y">✅ Thêm</button></div></div>';
@@ -216,7 +231,7 @@ function editForm(id){
     '<div class="af"><label>Giờ hoạt động</label><input id="e-h" value="'+(it.hours||'')+'"></div>'+
     '<div class="af"><label>Phí gửi xe</label><input id="e-p" value="'+(it.price==='Miễn phí'?'':it.price||'')+'"></div>'+
     '<div class="af"><label>Ghi chú</label><input id="e-no" value="'+(it.note||'')+'"></div>'+
-    '<div class="af"><label>Cấm chẵn/lẻ</label><select id="e-eo"><option value="">Không cấm</option><option value="even"'+(it.ban_eo==='even'?' selected':'')+'>Cấm ngày CHẴN</option><option value="odd"'+(it.ban_eo==='odd'?' selected':'')+'>Cấm ngày LẺ</option></select></div>'+
+    '<div class="af"><label>Cấm chẵn/lẻ</label><select id="e-eo"><option value="">Không cấm</option><option value="even"'+(it.ban_eo==='even'?' selected':'')+'>Cấm ngày CHẴN</option><option value="odd"'+(it.ban_eo==='odd'?' selected':'')+'>Cấm ngày LẺ</option><option value="even_left"'+(it.ban_eo==='even_left'?' selected':'')+'>Trái cấm CHẴN / Phải cấm LẺ</option><option value="odd_left"'+(it.ban_eo==='odd_left'?' selected':'')+'>Trái cấm LẺ / Phải cấm CHẴN</option></select></div>'+
     '<div class="af"><label>Cấm giờ (cách bởi | )</label><input id="e-bh" value="'+fmtBH(it.ban_h)+'"></div>'+
     '<div class="af"><label>Tọa độ / Plus Code</label><input id="e-ll" value="'+llVal+'"></div>'+
     '<div class="pw-btns"><button class="btn-cancel" id="e-no2">Hủy</button><button class="btn-ok" id="e-y">💾 Lưu</button></div></div>';
