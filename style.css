@@ -59,6 +59,8 @@ a{text-decoration:none;color:inherit}
 .map-btn:hover{transform:translate(-1px,-1px);box-shadow:2px 2px 0 rgba(0,0,0,.2)}
 .del-btn{padding:3px 8px;background:#ef4444;color:#fff;border-radius:5px;font-size:.65rem;font-weight:800;border:1px solid rgba(0,0,0,.2);cursor:pointer;transition:.2s;font-family:var(--font)}
 .del-btn:hover{background:#dc2626;transform:translate(-1px,-1px)}
+.edit-btn{padding:3px 8px;background:#3b82f6;color:#fff;border-radius:5px;font-size:.65rem;font-weight:800;border:1px solid rgba(0,0,0,.2);cursor:pointer;transition:.2s;font-family:var(--font)}
+.edit-btn:hover{background:#2563eb;transform:translate(-1px,-1px)}
 
 .empty{text-align:center;padding:60px 16px}
 .empty-t{font-size:1rem;font-weight:700;color:var(--dim);margin:8px 0 4px}

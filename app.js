@@ -73,34 +73,21 @@ function delSpot(id){spots=spots.filter(function(s){return s.id!==id});save();re
 function getCats(){var c=[];for(var i=0;i<spots.length;i++){if(c.indexOf(spots[i].dist)===-1)c.push(spots[i].dist)}return c}
 
 function render(){
-  var cats=getCats();
   $tabs.innerHTML='';
-  var all=[TAB_ALL].concat(cats);
-  for(var i=0;i<all.length;i++){
-    var b=document.createElement('button');b.className='tab-btn';
-    b.setAttribute('aria-selected',all[i]===tab?'true':'false');
-    b.dataset.cat=all[i];b.textContent=all[i];$tabs.appendChild(b);
-  }
   var items=spots.slice();
-  if(tab!==TAB_ALL)items=items.filter(function(s){return s.dist===tab});
   if(sq){var q=sq.toLowerCase();items=items.filter(function(s){
-    return(s.name||'').toLowerCase().indexOf(q)!==-1||(s.addr||'').toLowerCase().indexOf(q)!==-1||(s.note||'').toLowerCase().indexOf(q)!==-1||(s.dist||'').toLowerCase().indexOf(q)!==-1
+    return(s.name||'').toLowerCase().indexOf(q)!==-1||(s.note||'').toLowerCase().indexOf(q)!==-1
   })}
   if(!items.length){$emp.style.display='';$grid.style.display='none';return}
   $emp.style.display='none';$grid.style.display='';
-  var gd={},od=[];
-  for(var j=0;j<items.length;j++){var d=items[j].dist||'Khác';if(!gd[d]){gd[d]=[];od.push(d)}gd[d].push(items[j])}
   $grid.innerHTML='';
-  for(var c=0;c<od.length;c++){
-    var cn=od[c],ci=gd[cn];
-    var sec=document.createElement('div');sec.className='cat-sec';
-    var tw=document.createElement('div');tw.className='cat-t';
-    var h3=document.createElement('h3');h3.textContent=cn+' ('+ci.length+')';
-    tw.appendChild(h3);sec.appendChild(tw);
-    var gr=document.createElement('div');gr.className='cat-g';
-    for(var k=0;k<ci.length;k++)gr.appendChild(mkCard(ci[k]));
-    sec.appendChild(gr);$grid.appendChild(sec);
-  }
+  var sec=document.createElement('div');sec.className='cat-sec';
+  var tw=document.createElement('div');tw.className='cat-t';
+  var h3=document.createElement('h3');h3.textContent='🅿️ '+items.length+' địa điểm';
+  tw.appendChild(h3);sec.appendChild(tw);
+  var gr=document.createElement('div');gr.className='cat-g';
+  for(var k=0;k<items.length;k++)gr.appendChild(mkCard(items[k]));
+  sec.appendChild(gr);$grid.appendChild(sec);
 }
 
 function mkCard(it){
@@ -120,8 +107,6 @@ function mkCard(it){
   var tl={xe_may:'XE MÁY',oto:'Ô TÔ',both:'XM & ÔTÔ'};
   if(it.type){var bg=document.createElement('span');bg.className='c-badge b-'+it.type;bg.textContent=tl[it.type]||it.type;nr.appendChild(bg)}
   info.appendChild(nr);
-  // Address
-  if(it.addr){var ad=document.createElement('div');ad.className='c-addr';ad.textContent='📍 '+it.addr;info.appendChild(ad)}
   // Meta
   var mp=[];
   if(it.hours)mp.push('🕐 '+it.hours);
@@ -137,15 +122,21 @@ function mkCard(it){
   var se=document.createElement('div');se.className='st-badge '+st.cls;se.textContent=st.lbl;info.appendChild(se);
   // Actions
   var ac=document.createElement('div');ac.className='c-acts';
-  if(it.lat&&it.lng){
+  // Map button - supports lat/lng or Plus Code
+  var mapUrl=null;
+  if(it.lat&&it.lng)mapUrl='https://www.google.com/maps/search/?api=1&query='+it.lat+','+it.lng;
+  else if(it.pcode)mapUrl='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(it.pcode);
+  if(mapUrl){
     var mb=document.createElement('a');mb.className='map-btn';
-    mb.href='https://www.google.com/maps/search/?api=1&query='+it.lat+','+it.lng;
-    mb.target='_blank';mb.rel='noopener';mb.textContent='🗺️ Chỉ đường';
+    mb.href=mapUrl;mb.target='_blank';mb.rel='noopener';mb.textContent='🗺️ Chỉ đường';
     mb.onclick=function(e){e.stopPropagation()};ac.appendChild(mb);
   }
-  var db=document.createElement('button');db.className='del-btn';db.textContent='🗑️ Xóa';
+  var db=document.createElement('button');db.className='del-btn';db.textContent='🗑️';
   db.onclick=function(e){e.stopPropagation();if(confirm('Xóa "'+it.name+'"?'))delSpot(it.id)};
-  ac.appendChild(db);info.appendChild(ac);
+  ac.appendChild(db);
+  var eb=document.createElement('button');eb.className='edit-btn';eb.textContent='✏️';
+  eb.onclick=function(e){e.stopPropagation();pwPrompt(function(){editForm(it.id)})};
+  ac.appendChild(eb);info.appendChild(ac);
   card.appendChild(info);return card;
 }
 
@@ -173,15 +164,13 @@ function addForm(){
   var opts=DIST.map(function(d){return'<option value="'+d+'">'+d+'</option>'}).join('');
   ov.innerHTML='<div class="add-mod"><h3>🅿️ Thêm chỗ đậu xe</h3>'+
     '<div class="af"><label>Tên địa điểm *</label><input id="f-n" placeholder="VD: Bãi xe Vincom Q1"></div>'+
-    '<div class="af"><label>Quận / Khu vực *</label><select id="f-d">'+opts+'</select></div>'+
-    '<div class="af"><label>Địa chỉ *</label><input id="f-a" placeholder="VD: 72 Lê Thánh Tôn, Q1"></div>'+
     '<div class="af"><label>Loại xe</label><select id="f-t"><option value="oto">Ô tô</option><option value="xe_may">Xe máy</option><option value="both">Xe máy & Ô tô</option></select></div>'+
     '<div class="af"><label>Giờ hoạt động</label><input id="f-h" placeholder="VD: 6:00-22:00 hoặc 24/7"></div>'+
     '<div class="af"><label>Phí gửi xe (để trống = miễn phí)</label><input id="f-p" placeholder="VD: 10.000đ/giờ hoặc 80.000đ/ngày"></div>'+
     '<div class="af"><label>Ghi chú</label><input id="f-no" placeholder="VD: Free 2h đầu khi mua sắm"></div>'+
     '<div class="af"><label>Cấm chẵn/lẻ</label><select id="f-eo"><option value="">Không cấm</option><option value="even">Cấm ngày CHẴN</option><option value="odd">Cấm ngày LẺ</option></select></div>'+
     '<div class="af"><label>Cấm giờ (cách bởi dấu | )</label><input id="f-bh" placeholder="VD: 06:00-09:00 | 16:00-19:00"></div>'+
-    '<div class="af"><label>Tọa độ (paste từ Google Maps)</label><input id="f-ll" placeholder="VD: 10.7688, 106.6932"></div>'+
+    '<div class="af"><label>Tọa độ / Plus Code</label><input id="f-ll" placeholder="10.7688, 106.6932 hoặc RMHG+QP HCM"></div>'+
     '<div class="pw-btns"><button class="btn-cancel" id="a-n">Hủy</button><button class="btn-ok" id="a-y">✅ Thêm</button></div></div>';
   document.body.appendChild(ov);
   setTimeout(function(){document.getElementById('f-n').focus()},100);
@@ -190,31 +179,73 @@ function addForm(){
   ov.onclick=function(e){if(e.target===ov)cl()};
   document.getElementById('a-y').onclick=function(){
     var name=document.getElementById('f-n').value.trim();
-    var addr=document.getElementById('f-a').value.trim();
-    if(!name||!addr){toast('❌ Cần nhập tên và địa chỉ!');return}
+    if(!name){toast('❌ Cần nhập tên!');return}
     var bhStr=document.getElementById('f-bh').value.trim(),banH=[];
     if(bhStr){var ps=bhStr.split('|');for(var i=0;i<ps.length;i++){var m=ps[i].trim().match(/(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})/);if(m)banH.push([m[1],m[2]])}}
     var priceVal=document.getElementById('f-p').value.trim();
-    var llStr=document.getElementById('f-ll').value.trim(),lat=null,lng=null;
-    if(llStr){var lm=llStr.match(/([\d.]+)\s*[,\s]\s*([\d.]+)/);if(lm){lat=parseFloat(lm[1]);lng=parseFloat(lm[2])}}
+    var llStr=document.getElementById('f-ll').value.trim(),lat=null,lng=null,plusCode=null;
+    if(llStr){
+      var lm=llStr.match(/^([\d.-]+)\s*[,\s]\s*([\d.-]+)$/);
+      if(lm){lat=parseFloat(lm[1]);lng=parseFloat(lm[2])}
+      else{plusCode=llStr}
+    }
     var spot={
       id:Date.now().toString(36)+Math.random().toString(36).substr(2,4),
-      name:name,dist:document.getElementById('f-d').value,
-      addr:addr,type:document.getElementById('f-t').value,
+      name:name,type:document.getElementById('f-t').value,
       hours:document.getElementById('f-h').value.trim()||'24/7',
       price:priceVal||'Miễn phí',
       note:document.getElementById('f-no').value.trim(),
       ban_eo:document.getElementById('f-eo').value||null,
-      ban_h:banH,lat:lat,lng:lng
+      ban_h:banH,lat:lat,lng:lng,pcode:plusCode
     };
     spots.push(spot);save();cl();render();toast('✅ Đã thêm "'+name+'"');
+  };
+}
+
+// Edit form
+function editForm(id){
+  var it=null;for(var i=0;i<spots.length;i++){if(spots[i].id===id){it=spots[i];break}}
+  if(!it)return;
+  var ov=document.createElement('div');ov.className='ov';
+  var llVal='';
+  if(it.lat&&it.lng)llVal=it.lat+', '+it.lng;
+  else if(it.pcode)llVal=it.pcode;
+  ov.innerHTML='<div class="add-mod"><h3>✏️ Chỉnh sửa</h3>'+
+    '<div class="af"><label>Tên địa điểm *</label><input id="e-n" value="'+(it.name||'')+'"></div>'+
+    '<div class="af"><label>Loại xe</label><select id="e-t"><option value="oto"'+(it.type==='oto'?' selected':'')+'>Ô tô</option><option value="xe_may"'+(it.type==='xe_may'?' selected':'')+'>Xe máy</option><option value="both"'+(it.type==='both'?' selected':'')+'>Xe máy & Ô tô</option></select></div>'+
+    '<div class="af"><label>Giờ hoạt động</label><input id="e-h" value="'+(it.hours||'')+'"></div>'+
+    '<div class="af"><label>Phí gửi xe</label><input id="e-p" value="'+(it.price==='Miễn phí'?'':it.price||'')+'"></div>'+
+    '<div class="af"><label>Ghi chú</label><input id="e-no" value="'+(it.note||'')+'"></div>'+
+    '<div class="af"><label>Cấm chẵn/lẻ</label><select id="e-eo"><option value="">Không cấm</option><option value="even"'+(it.ban_eo==='even'?' selected':'')+'>Cấm ngày CHẴN</option><option value="odd"'+(it.ban_eo==='odd'?' selected':'')+'>Cấm ngày LẺ</option></select></div>'+
+    '<div class="af"><label>Cấm giờ (cách bởi | )</label><input id="e-bh" value="'+fmtBH(it.ban_h)+'"></div>'+
+    '<div class="af"><label>Tọa độ / Plus Code</label><input id="e-ll" value="'+llVal+'"></div>'+
+    '<div class="pw-btns"><button class="btn-cancel" id="e-no2">Hủy</button><button class="btn-ok" id="e-y">💾 Lưu</button></div></div>';
+  document.body.appendChild(ov);
+  setTimeout(function(){document.getElementById('e-n').focus()},100);
+  function cl(){document.body.removeChild(ov)}
+  document.getElementById('e-no2').onclick=cl;
+  ov.onclick=function(e){if(e.target===ov)cl()};
+  document.getElementById('e-y').onclick=function(){
+    var name=document.getElementById('e-n').value.trim();
+    if(!name){toast('❌ Cần nhập tên!');return}
+    var bhStr=document.getElementById('e-bh').value.trim(),banH=[];
+    if(bhStr){var ps=bhStr.split('|');for(var i=0;i<ps.length;i++){var m=ps[i].trim().match(/(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})/);if(m)banH.push([m[1],m[2]])}}
+    var priceVal=document.getElementById('e-p').value.trim();
+    var llStr=document.getElementById('e-ll').value.trim(),lat=null,lng=null,plusCode=null;
+    if(llStr){var lm=llStr.match(/^([\d.-]+)\s*[,\s]\s*([\d.-]+)$/);if(lm){lat=parseFloat(lm[1]);lng=parseFloat(lm[2])}else{plusCode=llStr}}
+    it.name=name;it.type=document.getElementById('e-t').value;
+    it.hours=document.getElementById('e-h').value.trim()||'24/7';
+    it.price=priceVal||'Miễn phí';
+    it.note=document.getElementById('e-no').value.trim();
+    it.ban_eo=document.getElementById('e-eo').value||null;
+    it.ban_h=banH;it.lat=lat;it.lng=lng;it.pcode=plusCode;
+    save();cl();render();toast('✅ Đã cập nhật "'+name+'"');
   };
 }
 
 // Events
 $ba.onclick=function(){pwPrompt(addForm)};
 $bt.onclick=togTheme;
-$tabs.onclick=function(e){var b=e.target.closest('.tab-btn');if(b){tab=b.dataset.cat;render()}};
 var db=null;
 $s.oninput=function(){clearTimeout(db);db=setTimeout(function(){sq=$s.value.trim();render()},200)};
 
